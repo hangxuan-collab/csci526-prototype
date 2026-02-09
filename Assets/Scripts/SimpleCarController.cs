@@ -8,11 +8,11 @@ public class SimpleCarController : MonoBehaviour
     public float dragFactor = 1.5f;
     public float turnSpeed = 90f;
 
-    [Header("Power cut rule")]
-    public float speedThreshold = 30f;        // speed that triggers the power cut
-    public float powerCutDuration = 3f;       // seconds to disable forward power
+    [Header("Power Cut Rule")]
+    public float speedThreshold = 30f;      // Speed that triggers the power cut
+    public float powerCutDuration = 3f;     // Seconds to disable forward power
 
-    // internal state
+    // Internal state
     float currentSpeed = 0f;
     bool powerCutActive = false;
     float powerCutTimer = 0f;
@@ -20,12 +20,10 @@ public class SimpleCarController : MonoBehaviour
     void Update()
     {
         float dt = Time.deltaTime;
-        float rawMoveInput = GetVertical();   // -1..1 (player input)
+        float rawMoveInput = GetVertical();
         float turnInput = GetHorizontal();
 
-        // --- Predictive overspeed detection ---
-        // If applying a forward acceleration this frame would push us over the threshold,
-        // trigger the power cut immediately (so holding W from start will still trigger).
+        // Predictive overspeed detection
         if (!powerCutActive && rawMoveInput > 0f)
         {
             float proposed = currentSpeed + acceleration * dt;
@@ -36,14 +34,13 @@ public class SimpleCarController : MonoBehaviour
             }
         }
 
-        // Also trigger if current speed is already beyond threshold (safety)
         if (!powerCutActive && Mathf.Abs(currentSpeed) >= speedThreshold)
         {
             powerCutActive = true;
             powerCutTimer = powerCutDuration;
         }
 
-        // Update power cut timer
+        // Power cut timer
         if (powerCutActive)
         {
             powerCutTimer -= dt;
@@ -54,39 +51,29 @@ public class SimpleCarController : MonoBehaviour
             }
         }
 
-        // --- Movement input handling ---
-        // During power cut forward power is removed. But we want the car to decelerate
-        // even if the player continues to hold W. To do that, we treat forward input as "no input"
-        // while power cut is active (so passive drag applies). Braking/reverse still works.
+        // Movement handling
         float moveInput = rawMoveInput;
         if (powerCutActive && moveInput > 0f)
-        {
-            // ignore forward input ¡ª behave as if no input was given
             moveInput = 0f;
-        }
 
         if (moveInput > 0f)
         {
-            // normal forward acceleration
             currentSpeed += acceleration * dt;
         }
         else if (moveInput < 0f)
         {
-            // braking/reverse behavior (brake toward zero if moving forward)
             if (currentSpeed > 0f)
             {
-                float brakeForce = acceleration * 2f; // simple braking scale
+                float brakeForce = acceleration * 2f;
                 currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, brakeForce * (-moveInput) * dt);
             }
             else
             {
-                // reverse acceleration
                 currentSpeed += acceleration * moveInput * dt;
             }
         }
         else
         {
-            // no input (or forward ignored during power cut): passive drag
             currentSpeed = Mathf.MoveTowards(
                 currentSpeed,
                 0f,
@@ -94,14 +81,12 @@ public class SimpleCarController : MonoBehaviour
             );
         }
 
-        // Apply rotation
+        // Apply rotation and movement
         transform.Rotate(Vector3.up * turnInput * turnSpeed * dt);
-
-        // Apply translation
         transform.Translate(Vector3.forward * currentSpeed * dt);
     }
 
-    // Input helpers (new Input System)
+    // Input helpers
     float GetVertical()
     {
         if (Keyboard.current != null)
@@ -126,18 +111,19 @@ public class SimpleCarController : MonoBehaviour
             : 0f;
     }
 
-    // Public getters (useful for UI)
+    // Debug getters
     public float GetCurrentSpeed() => currentSpeed;
     public bool IsPowerCutActive() => powerCutActive;
     public float GetPowerCutTimer() => powerCutTimer;
 
-    // On-screen debug
+    // On-screen debug UI (great for prototype demo)
     void OnGUI()
     {
         GUI.Box(new Rect(8, 8, 320, 112), "Speed Info");
         GUI.Label(new Rect(16, 30, 300, 20), $"Speed: {currentSpeed:F2}");
         GUI.Label(new Rect(16, 52, 300, 20), $"Threshold: {speedThreshold:F1}");
         GUI.Label(new Rect(16, 74, 300, 20), $"PowerCut: {powerCutActive} ({powerCutTimer:F1}s)");
-        GUI.Label(new Rect(16, 94, 300, 16), powerCutActive ? "FORWARD POWER CUT (forward ignored)" : "");
+        GUI.Label(new Rect(16, 94, 300, 16),
+            powerCutActive ? "FORWARD POWER CUT ACTIVE" : "");
     }
 }
