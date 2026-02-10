@@ -86,6 +86,13 @@ public class SimpleCarController : MonoBehaviour
         transform.Translate(Vector3.forward * currentSpeed * dt);
     }
 
+    // 🔹 NEW: Reset power cut when camera switches
+    public void ResetPowerCut()
+    {
+        powerCutActive = false;
+        powerCutTimer = 0f;
+    }
+
     // Input helpers
     float GetVertical()
     {
@@ -116,7 +123,7 @@ public class SimpleCarController : MonoBehaviour
     public bool IsPowerCutActive() => powerCutActive;
     public float GetPowerCutTimer() => powerCutTimer;
 
-    // On-screen debug UI (great for prototype demo)
+    // On-screen debug UI (prototype visualization)
     void OnGUI()
     {
         GUI.Box(new Rect(8, 8, 320, 112), "Speed Info");
