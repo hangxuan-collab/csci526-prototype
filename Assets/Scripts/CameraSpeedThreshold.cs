@@ -22,7 +22,7 @@ public class CameraSpeedThreshold : MonoBehaviour
 
     void Update()
     {
-        // NEW INPUT SYSTEM CHECK
+        // New Input System check
         if (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame)
         {
             Debug.Log("C pressed - switching camera");
@@ -46,6 +46,7 @@ public class CameraSpeedThreshold : MonoBehaviour
         cameraFP.gameObject.SetActive(true);
 
         car.speedThreshold = fpSpeedThreshold;
+        car.ResetPowerCut();   // 🔹 IMPORTANT: recalibrate speed
     }
 
     void SetThirdPerson()
@@ -54,5 +55,6 @@ public class CameraSpeedThreshold : MonoBehaviour
         cameraTP.gameObject.SetActive(true);
 
         car.speedThreshold = tpSpeedThreshold;
+        car.ResetPowerCut();   // 🔹 IMPORTANT: recalibrate speed
     }
 }
